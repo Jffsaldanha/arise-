@@ -1,171 +1,99 @@
--- // Carregar a interface Orion
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Eazvy/UILibs/main/Librarys/Orion/Example')))()
+--[[
+    Laruda AutoFarm Script
+    Roblox Game: Arise Crossover
+    Autor: Jffsaldanha + ChatGPT
+    Descrição: Ferramenta para testes do evento Raid Winter (Laruda), com interface, horário e autoclick.
+--]]
 
--- // Criar a janela
-local Window = OrionLib:MakeWindow({Name = "Raid Winter - Teste Laruda", HidePremium = false, SaveConfig = true, ConfigFolder = "AriseTest"})
+-- Proteção contra múltiplas execuções
+if getgenv().LarudaFarmRunning then return end
+getgenv().LarudaFarmRunning = true
 
--- // Variáveis
-local autoFarming = false
-local monitoring = false
-local autoExecute = false
-
--- // Função para detectar Laruda
-local function findLaruda()
-    return workspace:FindFirstChild("Laruda")
-end
-
--- // Função para teleportar e atacar
-local function teleportAndAttack()
-    local laruda = findLaruda()
-    if laruda and laruda:FindFirstChild("HumanoidRootPart") then
-        local player = game.Players.LocalPlayer
-        player.Character.HumanoidRootPart.CFrame = laruda.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-
-        OrionLib:MakeNotification({
-            Name = "Laruda encontrado!",
-            Content = "Teleportado e iniciando ataques!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
-        })
-
-        while autoFarming and laruda.Parent do
-            local tool = player.Character:FindFirstChildOfClass("Tool")
-            if tool then
-                tool:Activate()
-            end
-            task.wait(0.2)
-        end
-    else
-        OrionLib:MakeNotification({
-            Name = "Erro",
-            Content = "Laruda não encontrado!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
-        })
-    end
-end
-
--- // Função para monitorar horário fixo
-local function monitorLaruda()
-    monitoring = true
-    OrionLib:MakeNotification({
-        Name = "Monitoramento",
-        Content = "Aguardando horário (11 ou 41)...",
-        Image = "rbxassetid://4483345998",
-        Time = 5
-    })
-
-    while monitoring do
-        local time = os.date("*t")
-        local minute = time.min
-        local second = time.sec
-
-        if (minute == 11 or minute == 41) and second <= 10 then
-            OrionLib:MakeNotification({
-                Name = "Hora do Spawn!",
-                Content = "Procurando Laruda...",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
-
-            autoFarming = true
-            teleportAndAttack()
-
-            local laruda = findLaruda()
-            while laruda and laruda.Parent and monitoring do
-                task.wait(1)
-            end
-
-            OrionLib:MakeNotification({
-                Name = "Laruda",
-                Content = "Laruda derrotado ou sumiu!",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
-
-            autoFarming = false
-            task.wait(120)
-        end
-
-        task.wait(1)
-    end
-end
-
--- // Função para preparar auto execução em teleporte
+-- Auto Execute: Reexecuta após troca de servidor
 local function setupAutoExecute()
-    if autoExecute then
-        local scriptSource = [[
-            loadstring(game:HttpGet('https://yourserver.com/your_script.lua'))()
-        ]]
-        -- (Substituir depois pelo seu link real onde você hospedará o script)
+    if isfile and writefile then
+        writefile("laruda_autoexec.lua", 'loadstring(game:HttpGet("https://raw.githubusercontent.com/Jffsaldanha/arise-/main/laruda_farm.lua"))()')
+    end
+end
+setupAutoExecute()
 
-        queue_on_teleport(scriptSource)
-        OrionLib:MakeNotification({
-            Name = "Auto Execute",
-            Content = "Preparado para próximo servidor!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
-        })
+-- Carregar OrionLib
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Eazvy/UILibs/main/Librarys/Orion/OrionLib.lua"))()
+
+-- Criar Janela
+local Window = OrionLib:MakeWindow({Name = "Laruda AutoFarm", HidePremium = false, IntroText = "Laruda Sniper", SaveConfig = true, ConfigFolder = "LarudaFarm"})
+
+-- Auto Clicker
+local autoClick = false
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if autoClick then
+            pcall(function()
+                local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                if tool then
+                    tool:Activate()
+                end
+            end)
+        end
+    end
+end)
+
+-- Teleportar até o Laruda (posição estimada, altere conforme necessário)
+local function teleportToLaruda()
+    local lp = game.Players.LocalPlayer
+    if lp and lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+        lp.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(123, 15, 456)) -- ⬅️ Altere para a posição exata do Laruda
     end
 end
 
--- // Criar aba principal
-local Tab = Window:MakeTab({
-    Name = "Laruda Raid",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Verificar horário de spawn
+local function checkLarudaSpawn()
+    local currentTime = os.date("*t")
+    local minute = currentTime.min
+    return minute == 11 or minute == 41
+end
 
--- // Botão para teleportar manualmente
-Tab:AddButton({
-    Name = "Teleportar & Atacar (Manual)",
-    Callback = function()
-        autoFarming = true
-        teleportAndAttack()
-    end
-})
-
--- // Botão para iniciar monitoramento automático
-Tab:AddButton({
-    Name = "Iniciar Auto Farm (Horários fixos)",
-    Callback = function()
-        if not monitoring then
-            task.spawn(monitorLaruda)
-        else
-            OrionLib:MakeNotification({
-                Name = "Aviso",
-                Content = "Já está monitorando!",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
+-- Monitorar automaticamente o horário
+local autoMonitor = false
+task.spawn(function()
+    while true do
+        task.wait(5)
+        if autoMonitor and checkLarudaSpawn() then
+            teleportToLaruda()
+            autoClick = true
         end
     end
-})
+end)
 
--- // Botão para parar
+-- Interface com botões
+local Tab = Window:MakeTab({Name = "Principal", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+
 Tab:AddButton({
-    Name = "Parar Tudo",
+    Name = "Teleportar para Laruda",
     Callback = function()
-        autoFarming = false
-        monitoring = false
+        teleportToLaruda()
         OrionLib:MakeNotification({
-            Name = "Parado",
-            Content = "Auto Farm desligado!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
+            Name = "Teleportado",
+            Content = "Você foi movido até o local do Laruda.",
+            Time = 3
         })
     end
 })
 
--- // Toggle de Auto Execute
 Tab:AddToggle({
-    Name = "Auto Execute ao trocar servidor",
+    Name = "AutoClicker",
     Default = false,
-    Callback = function(Value)
-        autoExecute = Value
-        if autoExecute then
-            setupAutoExecute()
-        end
+    Callback = function(v)
+        autoClick = v
+    end
+})
+
+Tab:AddToggle({
+    Name = "Monitorar Horário (Auto TP)",
+    Default = false,
+    Callback = function(v)
+        autoMonitor = v
     end
 })
 
