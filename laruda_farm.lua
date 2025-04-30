@@ -1,84 +1,28 @@
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
- 
- 
-local MainWindow = Rayfield:CreateWindow({
-    Name = "Main",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "by Falxe",
+-- Carregar a UI Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Criar a Janela Principal com minimização via tecla Q
+local Window = Rayfield:CreateWindow({
+    Name = "Saldanha Hub",
+    LoadingTitle = "Saldanha Hub",
+    LoadingSubtitle = "por ChatGPT",
     ConfigurationSaving = {
-       Enabled = true,
-       FolderName = nil, -- Create a custom folder for your hub/game
-       FileName = "McDonalds Hub"
+        Enabled = false,
     },
     Discord = {
-       Enabled = false,
-       Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD.
-       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+        Enabled = false,
     },
-    KeySystem = false, -- Set this to true to use our key system
-    KeySettings = {
-       Title = "McDonalds Hub",
-       Subtitle = "Key System",
-       Note = "Key: McDonalds",
-       FileName = "SiriusKey",
-       SaveKey = true,
-       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-       Key = "McDonalds"
-    }
- })
- 
- 
- local MainTab = MainWindow:CreateTab("Main", 4483362458) -- Title, Image
- 
- 
- local Button = MainTab:CreateButton({
-    Name = "print 'hello'",
-    Callback = function(v)
-        v = print('hello')
+    KeySystem = false,
+    Keybind = Enum.KeyCode.Q, -- Tecla para minimizar a interface
+})
+
+-- Criar uma aba principal
+local MainTab = Window:CreateTab("Principal", 4483362458)
+
+-- Criar um botão de teste
+MainTab:CreateButton({
+    Name = "Botão de Teste",
+    Callback = function()
+        print("Botão de Teste clicado!")
     end,
- })
- 
- 
- 
- 
- local Toggle = MainTab:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(InfiniteJumpEnabled)
-        local InfiniteJumpEnabled = true
-        game:GetService("UserInputService").JumpRequest:connect(function()
-            if InfiniteJumpEnabled then
-                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
-            end
-        end)
-    end,
- })
- 
- 
- 
- local Slider = MainTab:CreateSlider({
-    Name = "Walkspeed",
-    Range = {16, 250},
-    Increment = 10,
-    Suffix = "Walkspeed",
-    CurrentValue = 10,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-    end,
- })
- 
- 
- 
- local Slider = MainTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 500},
-    Increment = 10,
-    Suffix = "JumpPower",
-    CurrentValue = 10,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
-    end,
- })
+})
